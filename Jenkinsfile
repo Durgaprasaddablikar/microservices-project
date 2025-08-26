@@ -1,34 +1,22 @@
 pipeline {
-    agent any
+     agent any
 
     tools {
-        // Assuming you installed "SonarQube Scanner" in Jenkins
-        sonarScanner 'SonarScanner'
-    }
-
-    environment {
-        SONARQUBE_ENV = 'MySonarQube'   // name you configured in Jenkins SonarQube servers
+        SonarRunnerInstallation 'SonarScanner'   // ✅ Correct type + name
     }
 
     stages {
-        stage('SonarQube Code Quality Scan') {
+        stage('SonarQube Analysis') {
             steps {
-                script {
-                    withSonarQubeEnv("${SONARQUBE_ENV}") {
-                        sh '''
-                          echo "=== Running SonarQube Analysis ==="
-                          sonar-scanner \
-                            -Dsonar.projectKey=adservice \
-                            -Dsonar.projectName="AdService" \
-                            -Dsonar.projectVersion=1.0 \
-                            -Dsonar.sources=./ \
-                            -Dsonar.host.url=$SONAR_HOST_URL \
-                            -Dsonar.login=$SONAR_AUTH_TOKEN
-                        '''
-                    }
+                withSonarQubeEnv('MySonarQubeServer') {   // Name from "Configure System"
+                    mvn sonar:sonar \
+                   -Dsonar.projectKey=myproject \
+                   -Dsonar.host.url=http://54.221.49.41:9000 \
+                   -Dsonar.login=ed7efca81520f14637ed3ae1a27c932b7ce8709a
                 }
             }
         }
+    }
 
         stage('Build & Tag Docker Image') {
             steps {
