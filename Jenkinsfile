@@ -14,7 +14,7 @@ pipeline {
                           mvn clean verify sonar:sonar \
                           -Dsonar.projectKey=myproject-adservice \
                           -Dsonar.host.url=http://54.221.49.41:9000 \
-                          -Dsonar.login=ed7efca81520f14637ed3ae1a27c932b7ce8709a
+                          -Dsonar.login=9391fbdc5ffcfdd449f389a54eac8a52a9e3470c
                         """
                     }
                 }
