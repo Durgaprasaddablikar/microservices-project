@@ -2,19 +2,21 @@ pipeline {
     agent any
 
     tools {
-        maven 'mymaven'  // This must match the Maven installation name in Jenkins Global Tool Config
+        maven 'mymaven'  // Must match the Maven installation name in Jenkins Global Tool Config
     }
 
     stages {
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarScanner') { // ✅ Use the SonarQube server name from "Manage Jenkins → Configure System"
-                    sh """
-                        mvn clean verify sonar:sonar \
-                        -Dsonar.projectKey=myproject \
-                        -Dsonar.host.url=http://54.221.49.41:9000 \
-                        -Dsonar.login=ed7efca81520f14637ed3ae1a27c932b7ce8709a
-                    """
+                dir('adservice') {   // go into microservice folder
+                    withSonarQubeEnv('SonarScanner') {
+                        sh """
+                          mvn clean verify sonar:sonar \
+                          -Dsonar.projectKey=myproject-adservice \
+                          -Dsonar.host.url=http://54.221.49.41:9000 \
+                          -Dsonar.login=ed7efca81520f14637ed3ae1a27c932b7ce8709a
+                        """
+                    }
                 }
             }
         }
