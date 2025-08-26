@@ -6,16 +6,27 @@ pipeline {
     }
 
     stages {
+        stage('Debug Workspace') {
+            steps {
+                echo "=== Printing workspace structure to locate pom.xml ==="
+                sh "ls -R"
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
-                dir('adservice') {   // go into microservice folder
-                    withSonarQubeEnv('SonarScanner') {
-                        sh """
-                          mvn clean verify sonar:sonar \
-                          -Dsonar.projectKey=myproject-adservice \
-                          -Dsonar.host.url=http://54.221.49.41:9000 \
-                          -Dsonar.login=9391fbdc5ffcfdd449f389a54eac8a52a9e3470c
-                        """
+                script {
+                    // If your pom.xml is inside adservice/, keep dir('adservice')
+                    // If pom.xml is at repo root, remove dir('adservice')
+                    dir('adservice') {
+                        withSonarQubeEnv('SonarScanner') {
+                            sh """
+                              mvn clean verify sonar:sonar \
+                              -Dsonar.projectKey=myproject-adservice \
+                              -Dsonar.host.url=http://54.221.49.41:9000 \
+                              -Dsonar.login=9391fbdc5ffcfdd449f389a54eac8a52a9e3470c
+                            """
+                        }
                     }
                 }
             }
