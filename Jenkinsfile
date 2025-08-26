@@ -1,23 +1,23 @@
 pipeline {
-     agent any
+    agent any
 
     tools {
-         maven 'mymaven'
-        SonarRunnerInstallation 'SonarScanner'   // ✅ Correct type + name
+        maven 'mymaven'  // This must match the Maven installation name in Jenkins Global Tool Config
     }
 
     stages {
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarScanner') {   // Name from "Configure System"
-                    mvn sonar:sonar \
-                   -Dsonar.projectKey=myproject \
-                   -Dsonar.host.url=http://54.221.49.41:9000 \
-                   -Dsonar.login=ed7efca81520f14637ed3ae1a27c932b7ce8709a
+                withSonarQubeEnv('SonarScanner') { // ✅ Use the SonarQube server name from "Manage Jenkins → Configure System"
+                    sh """
+                        mvn clean verify sonar:sonar \
+                        -Dsonar.projectKey=myproject \
+                        -Dsonar.host.url=http://54.221.49.41:9000 \
+                        -Dsonar.login=ed7efca81520f14637ed3ae1a27c932b7ce8709a
+                    """
                 }
             }
         }
-    }
 
         stage('Build & Tag Docker Image') {
             steps {
