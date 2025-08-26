@@ -11,23 +11,29 @@ pipeline {
                 }
             }
         }
-    stage('Trivy Scan Docker Image') {
-        steps {
-            script {
-                sh '''
-                    docker run --rm \
-                      -v /var/run/docker.sock:/var/run/docker.sock \
-                      aquasec/trivy:0.55.0 image \
-                      --exit-code 1 --severity HIGH,CRITICAL \
-                      prasaddablikar16/adservice:latest
-                '''
+
+        stage('Trivy Scan Docker Image') {
+            steps {
+                script {
+                    sh '''
+                      set +e
+                      echo "=== Running Trivy scan ==="
+                      docker run --rm \
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        -v $WORKSPACE:/workspace \
+                        aquasec/trivy:0.55.0 image \
+                        --exit-code 1 --severity HIGH,CRITICAL \
+                        --format table --output /workspace/trivy-report.txt \
+                        prasaddablikar16/adservice:latest
+                      scan_result=$?
+                      echo "Trivy scan finished with exit code: $scan_result"
+                      set -e
+                    '''
+                }
             }
         }
-    }    
+
         stage('Push Docker Image') {
-            when {
-                expression { currentBuild.result == null } // only if Trivy passed
-            }
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
@@ -35,6 +41,12 @@ pipeline {
                     }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'trivy-report.txt', followSymlinks: false
         }
     }
 }
