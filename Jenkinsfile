@@ -11,22 +11,19 @@ pipeline {
                 }
             }
         }
-
-        stage('Trivy Scan Docker Image') {
-            steps {
-                script {
-                    sh '''
-                        apt-get update -y
-                        apt-get install wget -y
-                        wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.55.0_Linux-64bit.deb
-                        dpkg -i trivy_0.55.0_Linux-64bit.deb
-                        # Scan image for HIGH/CRITICAL vulns (exit 1 if found)
-                        trivy image --exit-code 1 --severity HIGH,CRITICAL prasaddablikar16/adservice:latest
-                    '''
-                }
+    stage('Trivy Scan Docker Image') {
+        steps {
+            script {
+                sh '''
+                    docker run --rm \
+                      -v /var/run/docker.sock:/var/run/docker.sock \
+                      aquasec/trivy:0.55.0 image \
+                      --exit-code 1 --severity HIGH,CRITICAL \
+                      prasaddablikar16/adservice:latest
+                '''
             }
         }
-        
+    }    
         stage('Push Docker Image') {
             when {
                 expression { currentBuild.result == null } // only if Trivy passed
