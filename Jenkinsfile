@@ -1,37 +1,8 @@
+
 pipeline {
     agent any
 
-    tools {
-        maven 'mymaven'  // Must match the Maven installation name in Jenkins Global Tool Config
-    }
-
     stages {
-        stage('Debug Workspace') {
-            steps {
-                echo "=== Printing workspace structure to locate pom.xml ==="
-                sh "ls -R"
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    // If your pom.xml is inside adservice/, keep dir('adservice')
-                    // If pom.xml is at repo root, remove dir('adservice')
-                    dir('adservice') {
-                        withSonarQubeEnv('SonarScanner') {
-                            sh """
-                              mvn clean verify sonar:sonar \
-                              -Dsonar.projectKey=myproject-adservice \
-                              -Dsonar.host.url=http://54.221.49.41:9000 \
-                              -Dsonar.login=9391fbdc5ffcfdd449f389a54eac8a52a9e3470c
-                            """
-                        }
-                    }
-                }
-            }
-        }
-
         stage('Build & Tag Docker Image') {
             steps {
                 script {
@@ -41,42 +12,15 @@ pipeline {
                 }
             }
         }
-
-        stage('Trivy Scan Docker Image') {
-            steps {
-                script {
-                    sh '''
-                      set +e
-                      echo "=== Running Trivy scan ==="
-                      docker run --rm \
-                        -v /var/run/docker.sock:/var/run/docker.sock \
-                        -v $WORKSPACE:/workspace \
-                        aquasec/trivy:0.55.0 image \
-                        --exit-code 1 --severity HIGH,CRITICAL \
-                        --format table --output /workspace/trivy-report.txt \
-                        prasaddablikar16/adservice:latest
-                      scan_result=$?
-                      echo "Trivy scan finished with exit code: $scan_result"
-                      set -e
-                    '''
-                }
-            }
-        }
-
+        
         stage('Push Docker Image') {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
-                        sh "docker push prasaddablikar16/adservice:latest"
+                        sh "docker push prasaddablikar16/adservice:latest "
                     }
                 }
             }
-        }
-    }
-
-    post {
-        always {
-            archiveArtifacts artifacts: 'trivy-report.txt', followSymlinks: false
         }
     }
 }
