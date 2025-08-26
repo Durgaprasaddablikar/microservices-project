@@ -2,6 +2,7 @@ pipeline {
      agent any
 
     tools {
+         maven 'mymaven'
         SonarRunnerInstallation 'SonarScanner'   // ✅ Correct type + name
     }
 
