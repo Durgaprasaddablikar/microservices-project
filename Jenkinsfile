@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('MySonarQubeServer') {   // Name from "Configure System"
+                withSonarQubeEnv('SonarScanner') {   // Name from "Configure System"
                     mvn sonar:sonar \
                    -Dsonar.projectKey=myproject \
                    -Dsonar.host.url=http://54.221.49.41:9000 \
